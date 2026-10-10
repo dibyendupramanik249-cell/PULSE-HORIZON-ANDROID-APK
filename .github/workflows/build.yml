@@ -46,7 +46,14 @@ jobs:
             -in .github/signing/release.keystore.enc -out signing/release.keystore -pass pass:"$PW"
 
       - name: Build debug APK
-        run: ./gradlew assembleDebug --stacktrace
+        run: |
+          set +e
+          ./gradlew assembleDebug --console=plain > build.log 2>&1
+          code=$?
+          echo "======== KOTLIN / GRADLE ERRORS ========"
+          grep -E "^e: |^w: |error:|FAILED|What went wrong" build.log | head -40
+          echo "======== END OF ERRORS ========"
+          exit $code
 
       - name: Build signed release APK
         if: steps.key.outputs.present == 'true'
